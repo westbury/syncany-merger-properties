@@ -19,17 +19,19 @@ package org.syncany.merger.properties;
 
 import java.io.File;
 
-import org.simpleframework.xml.Element;
+import org.syncany.plugins.PropertiesMergerPlugin;
+import org.syncany.plugins.merge.MergerPlugin;
+import org.syncany.plugins.merge.MergerSettings;
 import org.syncany.plugins.transfer.FileType;
 import org.syncany.plugins.transfer.Setup;
-import org.syncany.plugins.transfer.TransferSettings;
+//import org.simpleframework.xml.Element;
 
 /**
  * @author Christian Roth <christian.roth@port17.de>
  */
-public class PropertiesMergerSettings extends TransferSettings {
-	@Element(required = true)
-	@Setup(order = 1, fileType = FileType.FOLDER, description = "Path to local repository")
+public class PropertiesMergerSettings extends MergerSettings {
+//	@Element(required = true)
+//	@Setup(order = 1, fileType = FileType.FOLDER, description = "Path to local repository")
 	public File path;
 
 	public File getPath() {
@@ -38,5 +40,10 @@ public class PropertiesMergerSettings extends TransferSettings {
 
 	public void setPath(File path) {
 		this.path = path;
+	}
+
+	@Override
+	public MergerPlugin getMergerPlugin() {
+		return new PropertiesMergerPlugin();
 	}
 }

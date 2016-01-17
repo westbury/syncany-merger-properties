@@ -27,21 +27,22 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.syncany.config.Config;
-import org.syncany.plugins.merge.FileMerger;
+import org.syncany.merger.properties.PropertiesMergerSettings;
 import org.syncany.plugins.merge.FileVersionContent;
+import org.syncany.plugins.merge.Merger;
+import org.syncany.plugins.merge.MergerSettings;
 import org.syncany.plugins.transfer.StorageException;
-import org.syncany.plugins.transfer.TransferSettings;
 
 /**
- * Implements a {@link FileMerger} that understands the format of a properties file and can
+ * Implements a {@link Merger} that understands the format of a properties file and can
  * sensibly merge them when there are conflicting versions of a properties file.
  *
  * @author Nigel Westbury
  */
-public class PropertiesMergerManager implements FileMerger {
-	private static final Logger logger = Logger.getLogger(PropertiesMergerManager.class.getSimpleName());
+public class PropertiesMerger implements Merger {
+	private static final Logger logger = Logger.getLogger(PropertiesMerger.class.getSimpleName());
 
-	protected TransferSettings settings;
+	protected MergerSettings settings;
 
 	protected Config config;
 
@@ -51,17 +52,13 @@ public class PropertiesMergerManager implements FileMerger {
 	 */
 	protected String conflictUserName;
 	
-	public PropertiesMergerManager(PropertiesMergerSettings settings, Config config) {
+	public PropertiesMerger(PropertiesMergerSettings settings, String conflictUserName) {
 		this.settings = settings;
-		this.config = config;
-		
-		conflictUserName = (config.getDisplayName() != null) 
-				? config.getDisplayName() 
-						: config.getMachineName();
+		this.conflictUserName = conflictUserName;
 	}
 
 	@Override
-	public void merge(FileVersionContent latestRemoteFile, File localFile, FileVersionContent commonAncestorFile) {
+	public boolean merge(FileVersionContent latestRemoteFile, File localFile, FileVersionContent commonAncestorFile) {
 		Properties properties1 = new Properties();
 		Properties properties2 = new Properties();
 		Properties propertiesBase = new Properties();
@@ -75,8 +72,12 @@ public class PropertiesMergerManager implements FileMerger {
 			properties2.load(localInputStream);
 			propertiesBase.load(commonAncestorInputStream);
 		} catch (IOException | StorageException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			
+			// It's possible these are not actually properties files in the
+			// Java format.  In that case we can't merge them and the caller
+			// must fall back to another merger.
+			return false;
 		}
 
 		/*
@@ -182,14 +183,30 @@ public class PropertiesMergerManager implements FileMerger {
 			OutputStream out = new FileOutputStream(localFile);
 		) {
 			mergedProperties.store(out, "Merged by Syncany");
+			return true;
 		}
 		catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// TODO Create our own runtime exception class
+			throw new RuntimeException(e);
 		}
 	}
 
 	private boolean significantChanges(Object value1, Object value2) {
 		return !value1.equals(value2);
+	}
+
+	@Override
+	public String getMimeType() {
+		// Indicate that this merger is not restricted to
+		// any particular mime type.
+		return null;
+	}
+
+	@Override
+	public String getExtension() {
+		// Indicate that an attempt to use merge files using
+		// this merger is only to be done on files with a
+		// .properties extension.
+		return "properties";
 	}
 }

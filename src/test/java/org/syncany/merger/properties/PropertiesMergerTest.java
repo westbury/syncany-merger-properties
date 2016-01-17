@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -13,9 +14,9 @@ import org.junit.Test;
 import org.syncany.plugins.merge.FileVersionContent;
 import org.syncany.plugins.transfer.StorageException;
 
-public class PropertiesMergerManagerTest {
+public class PropertiesMergerTest {
 
-	PropertiesMergerManager merger;
+	PropertiesMerger merger;
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -31,7 +32,8 @@ public class PropertiesMergerManagerTest {
 
 	@After
 	public void tearDown() throws Exception {
-		merger = new PropertiesMergerManager("user1");
+		PropertiesMergerSettings settings = new PropertiesMergerSettings();
+		merger = new PropertiesMerger(settings, "user1");
 	}
 
 	@Test
@@ -42,7 +44,7 @@ public class PropertiesMergerManagerTest {
 		
 		merger.merge(latestRemoteFile, localFile, commonAncestorFile);
 
-		assertEquals(URI.create("/a"), UriBuilder.fromRoot("/a").build());
+//		assertEquals(URI.create("/a"), UriBuilder.fromRoot("/a").build());
 
 	}
 
@@ -64,7 +66,7 @@ public class PropertiesMergerManagerTest {
 			@Override
 			public InputStream openInputStream() throws FileNotFoundException, StorageException, IOException {
 				// TODO Auto-generated method stub
-				return new BufferedInputStreamull;
+				return null;   // new BufferedInputStream
 			}};
 	}
 
